@@ -43,6 +43,21 @@ async function run() {
             res.send(services);
         });
 
+        app.get('/user', verifyJWT, async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users);
+        });
+
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send({ result });
+        });
+
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
@@ -54,7 +69,7 @@ async function run() {
             const result = await userCollection.updateOne(filter, updateDoc, options);
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
             res.send({ result, token });
-        })
+        });
 
         // Warning:
         // this is not the proper way to query.
@@ -84,7 +99,7 @@ async function run() {
 
 
             res.send(services);
-        })
+        });
 
         /**
          * API Naming Convention
@@ -131,8 +146,8 @@ run().catch(console.dir);
 
 app.get('/', (req, res) => {
     res.send('Hello from doctors chamber!')
-})
+});
 
 app.listen(port, () => {
     console.log(`Doctors app listening on port ${port}`)
-})
+});
